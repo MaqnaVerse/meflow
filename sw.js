@@ -1,7 +1,7 @@
 /* MeFlow — service worker (untuk "Install app").
    Halaman pembungkus + ikon disimpan; data sebenar sentiasa dari internet (Google Apps Script).
    Tiada sambungan → offline.html. Tukar VERSION bila fail di sini dikemas kini. */
-const VERSION = 'meflow-v1';
+const VERSION = 'meflow-v2';
 const SHELL = ['./', './index.html', './offline.html', './manifest.webmanifest',
   './icons/icon-192.png', './icons/icon-512.png', './icons/maskable-192.png', './icons/maskable-512.png', './icons/apple-touch-icon.png'];
 

@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>MeFlow · Rundown Studio</title>
   <meta name="description" content="MeFlow — broadcast rundown & production flow by Maqna Momento." />
+  <!-- Logo rasmi ME FLO (sama seperti dalam app) -->
+  <link rel="icon" type="image/png" href="https://i.postimg.cc/W1gzrCxv/ME-Logo.png" />
   <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png" />
   <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
 
@@ -34,7 +36,7 @@
   </style>
 </head>
 <body>
-  <div id="splash"><img src="icons/icon-192.png" alt="MeFlow"><div>MEFLOW · STANDING BY</div><div class="bar"><i></i></div></div>
+  <div id="splash"><img src="https://i.postimg.cc/W1gzrCxv/ME-Logo.png" onerror="this.src='icons/icon-192.png'" alt="ME FLO" style="object-fit:contain;background:transparent;box-shadow:none;width:120px;height:auto;filter:drop-shadow(0 0 24px rgba(168,85,247,.55))"><div>MEFLOW · STANDING BY</div><div class="bar"><i></i></div></div>
   <div class="frame">
     <iframe id="app" title="MeFlow" scrolling="yes" allowfullscreen
       allow="fullscreen; clipboard-write; clipboard-read; camera; microphone; display-capture; autoplay"></iframe>
@@ -52,7 +54,7 @@
     var frame = document.getElementById('app');
 
     if (!/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(EXEC_URL)) {
-      splash.innerHTML = '<img src="icons/icon-192.png" alt=""><div class="err">Belum disambung ke Apps Script.<br>Edit <b>index.html</b> → tampal URL /exec pada <b>EXEC_URL</b>.</div>';
+      splash.innerHTML = '<img src="https://i.postimg.cc/W1gzrCxv/ME-Logo.png" alt="" style="width:120px;height:auto;box-shadow:none"><div class="err">Belum disambung ke Apps Script.<br>Edit <b>index.html</b> → tampal URL /exec pada <b>EXEC_URL</b>.</div>';
       return;
     }
 
