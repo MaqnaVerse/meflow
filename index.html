@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>MeFlow · Rundown Studio</title>
+  <meta name="description" content="MeFlow — broadcast rundown & production flow by Maqna Momento." />
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
+
+  <!-- Rasa macam app bila "Add to Home Screen" (iPhone & Android) -->
+  <meta name="theme-color" content="#000000" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="MeFlow" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+  <link rel="manifest" href="manifest.webmanifest" />
+
+  <style>
+    html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; }
+    .frame { position: fixed; inset: 0; }
+    iframe { display: block; width: 100%; height: 100%; border: none; background: #000; }
+    /* Splash — hilang bila app siap dimuat */
+    #splash { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+      background: radial-gradient(600px 400px at 50% 40%, rgba(124,58,237,.35), transparent 70%), #000; color: #fff;
+      font: 600 12px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; letter-spacing: 3px; transition: opacity .4s; z-index: 2; }
+    #splash img { width: 88px; height: 88px; border-radius: 22px; box-shadow: 0 0 40px rgba(168,85,247,.5); }
+    #splash .bar { width: 140px; height: 3px; border-radius: 3px; background: rgba(255,255,255,.08); overflow: hidden; }
+    #splash .bar i { display: block; width: 40%; height: 100%; background: #a855f7; animation: s 1.1s ease-in-out infinite; }
+    #splash.hide { opacity: 0; pointer-events: none; }
+    #splash .err { color: #ff8aa1; letter-spacing: 0; max-width: 340px; text-align: center; font-weight: 500; }
+    @keyframes s { 0% { transform: translateX(-100%); } 100% { transform: translateX(260%); } }
+  </style>
+</head>
+<body>
+  <div id="splash"><img src="icons/icon-192.png" alt="MeFlow"><div>MEFLOW · STANDING BY</div><div class="bar"><i></i></div></div>
+  <div class="frame">
+    <iframe id="app" title="MeFlow" scrolling="yes" allowfullscreen
+      allow="fullscreen; clipboard-write; clipboard-read; camera; microphone; display-capture; autoplay"></iframe>
+  </div>
+
+  <script>
+  (function () {
+    /* ======================================================================
+       ⚙️ SATU-SATUNYA TETAPAN: tampal URL Web App Apps Script (/exec) di sini.
+       ====================================================================== */
+    var EXEC_URL = 'PASTE_APPS_SCRIPT_EXEC_URL_HERE';
+
+    var PREFIX = 'meflow_';
+    var splash = document.getElementById('splash');
+    var frame = document.getElementById('app');
+
+    if (!/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(EXEC_URL)) {
+      splash.innerHTML = '<img src="icons/icon-192.png" alt=""><div class="err">Belum disambung ke Apps Script.<br>Edit <b>index.html</b> → tampal URL /exec pada <b>EXEC_URL</b>.</div>';
+      return;
+    }
+
+    // Hantar hanya parameter yang dibenarkan (guest link: ?mode=guest&rd=RD-xxx)
+    var q = new URLSearchParams(location.search), out = new URLSearchParams();
+    if (q.get('mode') === 'guest') out.set('mode', 'guest');
+    if (/^[\w-]{1,60}$/.test(q.get('rd') || '')) out.set('rd', q.get('rd'));
+    frame.src = EXEC_URL + (out.toString() ? '?' + out.toString() : '');
+    frame.addEventListener('load', function () { setTimeout(function () { splash.classList.add('hide'); }, 600); });
+    setTimeout(function () { splash.classList.add('hide'); }, 12000);
+
+    /* ---- Simpanan sesi (jambatan) ----------------------------------------
+       App berjalan dalam iframe domain Google. iPhone / Safari / Chrome yang sekat
+       third-party cookies padam storan iframe → login hilang. App hantar token sesi
+       ke halaman ini (storan first-party yang kekal). Hanya terima mesej dari
+       …-script.googleusercontent.com dan hanya 3 kunci: user, screen, rdid.        */
+    var FROM = /^https:\/\/[a-z0-9-]+-script\.googleusercontent\.com$/;
+    var KEYS = { user: 1, screen: 1, rdid: 1 };
+    window.addEventListener('message', function (e) {
+      var d = e.data;
+      if (!FROM.test(e.origin) || !d || d.app !== 'meflow' || !e.source) return;
+      if (['get', 'set', 'del'].indexOf(d.op) < 0 || !KEYS[d.key]) return;
+      var res = { app: 'meflow', id: d.id };
+      try {
+        if (d.op === 'get') res.value = localStorage.getItem(PREFIX + d.key);
+        else if (d.op === 'set') localStorage.setItem(PREFIX + d.key, String(d.value).slice(0, 8000));
+        else localStorage.removeItem(PREFIX + d.key);
+      } catch (err) { res.error = String(err); }
+      e.source.postMessage(res, e.origin);
+    });
+    try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (err) {}
+
+    /* ---- Skrin jangan tidur semasa show (Wake Lock) ---- */
+    var lock = null;
+    function wake() { if ('wakeLock' in navigator && document.visibilityState === 'visible') navigator.wakeLock.request('screen').then(function (l) { lock = l; }).catch(function () {}); }
+    document.addEventListener('visibilitychange', wake);
+    window.addEventListener('click', function once() { wake(); window.removeEventListener('click', once); });
+
+    /* ---- PWA / Install ---- */
+    if ('serviceWorker' in navigator) window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+  })();
+  </script>
+</body>
+</html>
